@@ -16,6 +16,8 @@ class CustomSegmentedControll: UIControl {
     //Vars
     private var buttons = [UIButton]()
     private var selector: UIView!
+    private var bottombackground: UIView!
+
     var selectedSegmentIndex = 0
     //Inspectable vars
     @IBInspectable
@@ -27,6 +29,12 @@ class CustomSegmentedControll: UIControl {
     
     @IBInspectable
     var selectorHeight: CGFloat = 5
+    
+    @IBInspectable
+    var animationDuration: CGFloat = 0.3
+   
+    @IBInspectable
+    var shouldAnimateSelector: Bool = true
     
     @IBInspectable
     var borderColor: UIColor = UIColor.clear {
@@ -57,6 +65,13 @@ class CustomSegmentedControll: UIControl {
     }
     
     @IBInspectable
+    var nonSelectedBackgroundColor: UIColor = .lightGray {
+        didSet {
+            updateView()
+        }
+    }
+    
+    @IBInspectable
     var selectorTxtColor: UIColor = .white {
         didSet {
             updateView()
@@ -78,13 +93,19 @@ class CustomSegmentedControll: UIControl {
             buttons.append(button)
         }
         buttons[0].setTitleColor(selectorTxtColor, for: .normal)
-        
+        buttons[0].titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
+
         let selectorWidth = frame.width / CGFloat(buttonTitles.count)
         
         selector = UIView(frame: CGRect(x: 0, y: frame.height-selectorHeight, width: selectorWidth, height: selectorHeight))
         selector.backgroundColor = selectorColor
-        addSubview(selector)
         
+        bottombackground = UIView(frame: CGRect(x: 0, y: frame.height-1, width: frame.width, height: 1))
+        bottombackground.backgroundColor = nonSelectedBackgroundColor
+
+        addSubview(bottombackground)
+        addSubview(selector)
+
         let sv = UIStackView(arrangedSubviews: buttons)
         sv.axis = .horizontal
         sv.alignment = .fill
@@ -101,15 +122,24 @@ class CustomSegmentedControll: UIControl {
     @objc func buttonTapped(button: UIButton) {
         for (buttonIndex, btn) in buttons.enumerated() {
             btn.setTitleColor(txtColor, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+
             
             if btn == button {
                 selectedSegmentIndex = buttonIndex
                 let selectorStartPosition = frame.width/CGFloat(buttons.count) * CGFloat(buttonIndex)
                 
-                UIView.animate(withDuration: 0.3, animations: {
+                if shouldAnimateSelector {
+                    UIView.animate(withDuration: 0.3, animations: {
+                        self.selector.frame.origin.x = selectorStartPosition
+                    })
+                } else {
                     self.selector.frame.origin.x = selectorStartPosition
-                })
+                }
+                
+                
                 btn.setTitleColor(selectorTxtColor, for: .normal)
+                btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
             }
         }
         
